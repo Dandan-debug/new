@@ -11,8 +11,8 @@ scalers = {
 }
 
 models = {
-    'C': joblib.load('rf_C.pkl'),  # 修改为 rf_C.pkl
-    'P': joblib.load('xgboost_P.pkl'),  # 修改为 xgboost_P.pkl
+    'C': joblib.load('rf_C.pkl'),
+    'P': joblib.load('xgboost_P.pkl'),
     'U': joblib.load('lightgbm_U.pkl')
 }
 
@@ -54,7 +54,6 @@ additional_features = {
                                          'UM3513', 'UM790', 'UM8349', 'UM2093', 'UM4210', 'UM3935', 'UM4256']]
 }
 
-
 # Streamlit界面
 st.title("子宫内膜癌风险预测器")
 
@@ -68,18 +67,20 @@ selected_models = st.multiselect(
 # 获取用户输入
 user_input = {}
 
-# 定义特征输入
+# 定义通用特征输入
 for i, feature in enumerate(display_features_to_scale):
     if "1=yes" in feature:  # 对于分类变量，限制输入为0或1
         user_input[original_features_to_scale[i]] = st.selectbox(f"{feature}:", options=[0, 1])
     else:  # 对于连续变量，使用数值输入框
         user_input[original_features_to_scale[i]] = st.number_input(f"{feature}:", min_value=0.0, value=0.0)
 
-# 为每个选定的模型定义额外特征
+# 为每个选定的模型定义额外特征输入
 for model_key in selected_models:
     for feature in additional_features[model_key]:
-        # 允许保留较多小数位的输入
-        user_input[feature] = st.number_input(f"{feature} ({model_key}):", min_value=0.0, format="%.9f")
+        # 去掉 .0 后缀，仅用于显示
+        display_feature = feature.replace(".0", "")
+        # 显示为去掉后缀的名称，但仍然保存为带 .0 后缀的键
+        user_input[feature] = st.number_input(f"{display_feature} ({model_key}):", min_value=0.0, format="%.9f")
 
 # 预测按钮
 if st.button("预测"):
